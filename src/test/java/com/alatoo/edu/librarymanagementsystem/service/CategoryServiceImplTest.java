@@ -93,10 +93,8 @@ public class CategoryServiceImplTest {
 
     @Test
     public void testDeleteCategory_NotFound() {
-        // Arrange
         when(categoryRepository.findById(999L)).thenReturn(Optional.empty());
 
-        // Act & Assert
         NotFoundException exception = assertThrows(NotFoundException.class, () -> {
             categoryService.deleteCategory(999L);
         });

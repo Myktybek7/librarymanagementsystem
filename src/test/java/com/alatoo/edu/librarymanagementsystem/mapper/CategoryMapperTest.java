@@ -31,7 +31,6 @@ public class CategoryMapperTest {
         assertEquals(1L, dto1.getId());
         assertEquals("Fiction", dto1.getName());
 
-        // Verify the conversion for the second CategoryDTO
         CategoryDTO dto2 = result.get(1);
         assertEquals(2L, dto2.getId());
         assertEquals("Non-fiction", dto2.getName());

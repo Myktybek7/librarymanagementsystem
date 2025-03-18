@@ -14,7 +14,6 @@ public class BookMapperTest {
 
     @Test
     public void testBookModelToDTO() {
-        // Prepare sample Book entities
         Book book1 = new Book();
         book1.setId(1L);
         book1.setIsbn("978-3-16-148410-0");

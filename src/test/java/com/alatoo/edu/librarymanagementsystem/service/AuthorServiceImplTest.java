@@ -37,10 +37,8 @@ class AuthorServiceImplTest {
 
         when(authorRepository.findById(authorId)).thenReturn(Optional.of(author));
 
-        // Act
         Author result = authorService.findAuthorById(authorId);
 
-        // Assert
         assertNotNull(result);
         assertEquals("Test Author", result.getName());
         assertEquals(authorId, result.getId());
@@ -49,11 +47,9 @@ class AuthorServiceImplTest {
 
     @Test
     void testFindAuthorByIdNotFound() {
-        // Arrange
         Long authorId = 1L;
         when(authorRepository.findById(authorId)).thenReturn(Optional.empty());
 
-        // Act & Assert
         NotFoundException thrown = assertThrows(NotFoundException.class, () -> {
             authorService.findAuthorById(authorId);
         });
@@ -63,53 +59,42 @@ class AuthorServiceImplTest {
 
     @Test
     void testCreateAuthor() {
-        // Arrange
         Author author = new Author();
         author.setName("New Author");
 
-        // Act
         authorService.createAuthor(author);
 
-        // Assert
         verify(authorRepository, times(1)).save(author);
     }
 
     @Test
     void testUpdateAuthor() {
-        // Arrange
         Author author = new Author();
         author.setId(1L);
         author.setName("Updated Author");
 
-        // Act
         authorService.updateAuthor(author);
 
-        // Assert
         verify(authorRepository, times(1)).save(author);
     }
 
     @Test
     void testDeleteAuthor() {
-        // Arrange
         Long authorId = 1L;
         Author author = new Author();
         author.setId(authorId);
         when(authorRepository.findById(authorId)).thenReturn(Optional.of(author));
 
-        // Act
         authorService.deleteAuthor(authorId);
 
-        // Assert
         verify(authorRepository, times(1)).deleteById(authorId);
     }
 
     @Test
     void testDeleteAuthorNotFound() {
-        // Arrange
         Long authorId = 1L;
         when(authorRepository.findById(authorId)).thenReturn(Optional.empty());
 
-        // Act & Assert
         NotFoundException thrown = assertThrows(NotFoundException.class, () -> {
             authorService.deleteAuthor(authorId);
         });
