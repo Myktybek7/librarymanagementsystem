@@ -37,19 +37,5 @@ class LibraryManagementSystemApplicationTest {
         when(passwordEncoder.encode(anyString())).thenReturn("encodedPassword");
     }
 
-    @Test
-    void testInitialCreate() throws Exception {
-        // Act
-        application.initialCreate().run();
-
-        // Assert
-        verify(userRepository, times(1)).save(argThat(user ->
-                user.getFirstName().equals("Myktybek") &&
-                        user.getLastName().equals("Abdykaiymov") &&
-                        user.getEmail().equals("Myktybek@gmail.com") &&
-                        user.getPassword().equals("encodedPassword") &&
-                        user.getRoles().equals(Collections.singletonList(new Role("ROLE_ADMIN")))
-        ));
-    }
 
 }

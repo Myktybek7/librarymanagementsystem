@@ -26,7 +26,7 @@ public class AuthorController {
 
 	@RequestMapping("/authors")
 	public String findAllAuthors(Model model, @RequestParam("page") Optional<Integer> page,
-			@RequestParam("size") Optional<Integer> size) {
+								 @RequestParam("size") Optional<Integer> size) {
 
 		var currentPage = page.orElse(1);
 		var pageSize = size.orElse(5);
@@ -91,5 +91,4 @@ public class AuthorController {
 		model.addAttribute("author", authorService.findAllAuthors());
 		return "redirect:/authors";
 	}
-
 }

@@ -1,23 +1,29 @@
 package com.alatoo.edu.librarymanagementsystem.securityconfig;
 
-import com.alatoo.edu.librarymanagementsystem.service.UserService;
+import com.alatoo.edu.librarymanagementsystem.filter.JwtAuthorizationFilter;
+import com.alatoo.edu.librarymanagementsystem.service.UserMailService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
-@EnableWebSecurity
-public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
+@EnableMethodSecurity
+public class SecurityConfiguration {
 
 	@Autowired
-	private UserService userService;
+	private UserMailService userMailService;
+
+	@Autowired
+	private JwtAuthorizationFilter jwtAuthorizationFilter;
 
 	@Bean
 	public BCryptPasswordEncoder passwordEncoder() {
@@ -26,23 +32,49 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
 	@Bean
 	public DaoAuthenticationProvider authenticationProvider() {
-		var auth = new DaoAuthenticationProvider();
-		auth.setUserDetailsService(userService);
-		auth.setPasswordEncoder(passwordEncoder());
-		return auth;
+		DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
+		provider.setUserDetailsService(userMailService);
+		provider.setPasswordEncoder(passwordEncoder());
+		return provider;
 	}
 
-	@Override
-	protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-		auth.authenticationProvider(authenticationProvider());
+	@Bean
+	public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
+		return config.getAuthenticationManager();
 	}
 
-	@Override
-	protected void configure(HttpSecurity http) throws Exception {
-		http.authorizeRequests().antMatchers("/js/**", "/css/**", "/img/**").permitAll().anyRequest().authenticated()
-				.and().formLogin().loginPage("/login").permitAll().and().logout().invalidateHttpSession(true)
-				.clearAuthentication(true).logoutRequestMatcher(new AntPathRequestMatcher("/logout"))
-				.logoutSuccessUrl("/login?logout").permitAll();
+	@Bean
+	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+		http
+				.csrf().disable()
+				.sessionManagement(session -> session
+						.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+				)
+				.authorizeHttpRequests(auth -> auth
+						.antMatchers(
+								"/api/auth/login", "/api/auth/refresh",
+								"/login", "/register-user",
+								"/css/**", "/js/**", "/img/**", "/oauth2/**"
+						).permitAll()
+						.anyRequest().authenticated()
+				)
+				.formLogin(form -> form
+						.loginPage("/login")
+						.loginProcessingUrl("/login")
+						.defaultSuccessUrl("/", true)
+						.failureUrl("/login?error=true")
+				)
+				.logout(logout -> logout
+						.logoutUrl("/logout")
+						.logoutSuccessUrl("/login?logout=true")
+				)
+				.oauth2Login(oauth2 -> oauth2
+						.loginPage("/login")
+						.defaultSuccessUrl("/", true)
+				)
+				.authenticationProvider(authenticationProvider())
+				.addFilterBefore(jwtAuthorizationFilter, UsernamePasswordAuthenticationFilter.class);
 
+		return http.build();
 	}
 }
